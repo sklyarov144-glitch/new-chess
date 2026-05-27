@@ -15,6 +15,13 @@
 }
 :root[data-board-theme="neon"] { --bg: #080318; --light-square: #b9f3ff; --dark-square: #34215f; --gold: #67e8f9; --gold-2: #a855f7; --accent: #f0abfc; }
 :root[data-board-theme="glass"] { --bg: #071827; --light-square: #dff7ff; --dark-square: #5e8aa8; --gold: #bae6fd; --gold-2: #38bdf8; --accent: #e0f2fe; }
+
+:root[data-board-theme="emerald"] { --bg: #04170f; --light-square: #b7f3d2; --dark-square: #1f6a4a; --gold: #7af0b5; --gold-2: #22c55e; --accent: #86efac; }
+:root[data-board-theme="lava"] { --bg: #1b0704; --light-square: #ffd4a8; --dark-square: #8a2f1f; --gold: #ffb74d; --gold-2: #f97316; --accent: #fb7185; }
+:root[data-board-theme="space"] { --bg: #040512; --light-square: #c9d2ff; --dark-square: #2a2d68; --gold: #8ab4ff; --gold-2: #6366f1; --accent: #a78bfa; }
+:root[data-board-theme="marble"] { --bg: #0f1218; --light-square: #f0f0f3; --dark-square: #8e96a8; --gold: #e7d7b3; --gold-2: #c2a97a; --accent: #cbd5e1; }
+:root[data-board-theme="sakura"] { --bg: #170813; --light-square: #ffe5f1; --dark-square: #b95c8a; --gold: #ffc0da; --gold-2: #f472b6; --accent: #f9a8d4; }
+
 *{box-sizing:border-box} html,body{margin:0;min-height:100%;background:radial-gradient(40vw 40vw at 6% 0%, rgba(56, 189, 248, 0.25), transparent 62%),radial-gradient(30vw 30vw at 100% 16%, rgba(248, 201, 99, 0.16), transparent 66%),radial-gradient(34vw 34vw at 100% 100%, rgba(56, 189, 248, 0.14), transparent 62%),var(--bg);color:var(--text);user-select:none;-webkit-tap-highlight-color:transparent} body{overflow-x:hidden} button{font:inherit}
 .app-shell{width:min(1200px,100%);min-height:100vh;margin:0 auto;padding:clamp(12px,3vw,30px);position:relative}
 h1,h2,h3,p{margin:0} h1{font-size:clamp(24px,4vw,40px)} h2{font-size:clamp(20px,3vw,30px)}
@@ -64,8 +71,10 @@ h1,h2,h3,p{margin:0} h1{font-size:clamp(24px,4vw,40px)} h2{font-size:clamp(20px,
 .shop-item{border:1px solid rgba(255,255,255,.2);background:rgba(255,255,255,.06);color:var(--text);border-radius:14px;padding:10px 12px;display:grid;grid-template-columns:52px 1fr;gap:10px;align-items:center;cursor:pointer;text-align:left}
 .shop-item small{color:var(--muted)} .active-shop{border-color:var(--gold);box-shadow:0 0 0 1px rgba(248,201,99,.35)}
 .board-preview{width:40px;height:40px;border-radius:10px;display:block;border:1px solid rgba(255,255,255,.32)}
-.theme-royal{background:linear-gradient(135deg,#d9c4a0 50%,#7b5232 50%)} .theme-neon{background:linear-gradient(135deg,#b9f3ff 50%,#34215f 50%)} .theme-glass{background:linear-gradient(135deg,#dff7ff 50%,#5e8aa8 50%)}
+.theme-royal{background:linear-gradient(135deg,#d9c4a0 50%,#7b5232 50%)} .theme-neon{background:linear-gradient(135deg,#b9f3ff 50%,#34215f 50%)} .theme-glass{background:linear-gradient(135deg,#dff7ff 50%,#5e8aa8 50%)} .theme-emerald{background:linear-gradient(135deg,#b7f3d2 50%,#1f6a4a 50%)} .theme-lava{background:linear-gradient(135deg,#ffd4a8 50%,#8a2f1f 50%)} .theme-space{background:linear-gradient(135deg,#c9d2ff 50%,#2a2d68 50%)} .theme-marble{background:linear-gradient(135deg,#f0f0f3 50%,#8e96a8 50%)} .theme-sakura{background:linear-gradient(135deg,#ffe5f1 50%,#b95c8a 50%)}
 .piece-preview{font-size:24px}
 
 @media (max-width:980px){.layout{grid-template-columns:1fr}.chess-board{width:min(92vw,72vh)}.shop-columns,.difficulty-grid{grid-template-columns:1fr}}
 @media (max-width:640px){.app-shell{padding:12px}.topbar{align-items:flex-start;flex-direction:column}.side-panel{grid-template-columns:1fr}.action-row{grid-template-columns:1fr}.menu-hero{grid-template-columns:1fr}.menu-crown{margin:auto}.btn-menu{font-size:20px}}
+
+.player-chip{padding:10px 14px;border:1px solid rgba(255,255,255,.2);border-radius:14px;background:rgba(255,255,255,.06);display:grid;gap:4px}.player-chip small{color:var(--muted)}.player-chip.glow-active{border-color:var(--gold);box-shadow:0 0 14px color-mix(in srgb,var(--gold) 60%, transparent),0 0 32px color-mix(in srgb,var(--accent) 40%, transparent)}.player-name{font-size:16px}.vip-badge{display:inline-block;width:max-content;padding:2px 8px;border-radius:999px;background:linear-gradient(135deg,var(--gold),var(--gold-2));color:#1a2233;font-weight:800;font-size:12px}.in-topbar{margin-left:auto}.glow-block{background:linear-gradient(160deg, rgba(248,201,99,.14), rgba(255,255,255,.03))}.glow-card{border-color:rgba(248,201,99,.45)}.glow-preview{display:grid;place-items:center;background:radial-gradient(circle at 50% 50%, rgba(248,201,99,.95), rgba(245,158,11,.52));color:#1a2233;font-weight:900}.shop-item:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.2)}
