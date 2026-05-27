@@ -43,19 +43,20 @@ const GLOW_ITEMS = [
 const game = new ChessGame();
 let state = { ...stateDefaults, language: localStorage.getItem(LANG_KEY) || 'ru' };
 let screen='menu', mode='ai', activePuzzle=null, selected=null, legalTargets=[], holdTick=null, rewardMultiplierArmed=false, lastSaveTs=0;
+let aiThinking = false;
 let shopPreview={ type:'board', id:'royal' };
 const app=document.querySelector('#app'); const toastEl=document.querySelector('#toast');
 
 (async()=>{await yandex.init();state={...stateDefaults,...migrateState(await yandex.load(stateDefaults)),language:localStorage.getItem(LANG_KEY)||'ru'};shopPreview={ type:'board', id:state.activeBoardTheme };validatePuzzlesForDebug(puzzles);render();app.addEventListener('click',onClick);app.addEventListener('change',onFieldChange);app.addEventListener('mouseover',onShopHover);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveState(true);});window.addEventListener('beforeunload',()=>saveState(true));})();
 
 function onClick(e){const a=e.target.closest('[data-action]')?.dataset.action;if(!a)return;
-if(a==='go-menu'){screen='menu';render();}
+if(a==='go-menu'){aiThinking=false;screen='menu';render();}
 if(a==='go-game'){screen='difficulty';render();}
 if(a==='go-puzzles'){mode='puzzle';screen='game';pickPuzzle(false);render();}
 if(a==='go-shop'){screen='shop';render();}
 if(a==='go-how'){screen='how';render();}
 if(a==='go-settings'){screen='settings';render();}
-if(a==='start-ai'){mode='ai';game.reset('start');screen='game';showToast(t('gameReady'));render();}
+if(a==='start-ai'){mode='ai';aiThinking=false;selected=null;legalTargets=[];game.reset('start');screen='game';showToast(t('gameReady'));render();}
 if(a==='set-ai'){state.aiLevel=e.target.dataset.level;saveState();render();}
 if(a==='hint'){showToast(mode==='puzzle'?(activePuzzle?.hint?.[state.language]||''):t('universalHint'));}
 if(a==='undo'){
@@ -97,8 +98,47 @@ function onFieldChange(e){if(!e.target.matches('[data-field="player-name"]'))ret
 function savePlayerName(){const input=app.querySelector('[data-field="player-name"]');if(!input)return;state.playerName=(input.value||'').trim();saveState(true);showToast(t('nameSaved'));render();}
 function onShopHover(e){const item=e.target.closest('[data-action="shop-board"],[data-action="shop-piece"]');if(!item)return;shopPreview={type:item.dataset.action==='shop-board'?'board':'piece',id:item.dataset.item};if(screen==='shop'){const preview=app.querySelector('.shop-preview');if(preview)preview.innerHTML=renderShopPreview();}}
 function migrateState(loaded){const next={...loaded};if(!next.playerName||next.playerName==='Player')next.playerName='';if(!Array.isArray(next.ownedBoardThemes)||!next.ownedBoardThemes.length)next.ownedBoardThemes=['royal'];if(!Array.isArray(next.ownedPieceSets)||!next.ownedPieceSets.length)next.ownedPieceSets=['classic'];if(!next.ownedBoardThemes.includes('royal'))next.ownedBoardThemes.unshift('royal');if(!next.ownedPieceSets.includes('classic'))next.ownedPieceSets.unshift('classic');if(!next.activeBoardTheme)next.activeBoardTheme='royal';if(!next.activePieceSet)next.activePieceSet='classic';if(typeof next.sessionSeconds!=='number'||Number.isNaN(next.sessionSeconds)){const oldHoldMs=typeof next.holdMs==='number'?next.holdMs:600000;next.sessionSeconds=Math.max(0,Math.floor((600000-oldHoldMs)/1000));}next.sessionSeconds=Math.max(0,Math.floor(next.sessionSeconds));if(typeof next.retentionRewardClaimed!=='boolean')next.retentionRewardClaimed=false;return next;}
-function onSquare(row,col){const piece=game.getPiece(row,col);if(selected){const move=game.makeMove(selected,{row,col});if(move){selected=null;legalTargets=[];afterMove(move);renderBoard();return;}}if(piece&&piece.color===game.turn){selected={row,col};legalTargets=game.legalMoves().filter(m=>m.from.row===row&&m.from.col===col).map(m=>m.to);}else{selected=null;legalTargets=[];}renderBoard();}
-function afterMove(move){const notation=game.moveToNotation(move);if(mode==='puzzle'){if(notation===activePuzzle.solution){if(!state.completedPuzzles.includes(activePuzzle.id))state.completedPuzzles.push(activePuzzle.id);const reward=rewardMultiplierArmed?activePuzzle.reward*2:activePuzzle.reward;state.coins+=reward;rewardMultiplierArmed=false;saveState();showToast(`+${reward}`);pickPuzzle(false);render();}return;}if(!game.status().over){setTimeout(()=>{const aiMove=game.bestMove('b',aiLevels[state.aiLevel]||aiLevels.amateur);if(aiMove) game.applyMove(aiMove,'q',true);renderBoard();},300);}}
+function onSquare(row,col){
+const piece=game.getPiece(row,col);
+if(mode==='ai'){
+if(aiThinking)return;
+if(game.turn!=='w')return;
+if(piece&&piece.color==='b')return;
+}
+if(selected){
+const move=game.makeMove(selected,{row,col});
+if(move){selected=null;legalTargets=[];afterMove(move);renderBoard();return;}
+}
+if(piece&&piece.color===game.turn){
+selected={row,col};
+legalTargets=game.legalMoves().filter(m=>m.from.row===row&&m.from.col===col).map(m=>m.to);
+}else{selected=null;legalTargets=[];}
+renderBoard();
+}
+function afterMove(move){
+const notation=game.moveToNotation(move);
+if(mode==='puzzle'){
+if(notation===activePuzzle.solution){if(!state.completedPuzzles.includes(activePuzzle.id))state.completedPuzzles.push(activePuzzle.id);const reward=rewardMultiplierArmed?activePuzzle.reward*2:activePuzzle.reward;state.coins+=reward;rewardMultiplierArmed=false;saveState();showToast(`+${reward}`);pickPuzzle(false);render();}
+return;
+}
+const statusAfterPlayer=game.status();
+if(statusAfterPlayer.over){aiThinking=false;return;}
+if(mode==='ai'){
+aiThinking=true;
+selected=null;
+legalTargets=[];
+renderBoard();
+setTimeout(()=>{
+const aiMove=game.bestMove('b',aiLevels[state.aiLevel]||aiLevels.amateur);
+if(aiMove) game.applyMove(aiMove,'q',true);
+if(game.status().over) aiThinking=false;
+aiThinking=false;
+renderBoard();
+},300);
+return;
+}
+if(!statusAfterPlayer.over){setTimeout(()=>{const aiMove=game.bestMove('b',aiLevels[state.aiLevel]||aiLevels.amateur);if(aiMove) game.applyMove(aiMove,'q',true);renderBoard();},300);}
+}
 function pickPuzzle(randomAny){const filt=state.puzzleDifficulty==='all'?puzzles:puzzles.filter(p=>p.difficulty===state.puzzleDifficulty);let unresolved=filt.filter(p=>!state.completedPuzzles.includes(p.id));let pool=(randomAny?filt:(unresolved.length?unresolved:filt)).filter(p=>p.id!==state.lastPuzzleId);if(!pool.length) pool=filt;activePuzzle=pool[Math.floor(Math.random()*pool.length)];state.lastPuzzleId=activePuzzle.id;game.reset(activePuzzle.fen);}
 function startTimer(){holdTick=setInterval(()=>{state.sessionSeconds+=1;updateHoldUi();checkRetentionReward();saveState();},1000);}
 

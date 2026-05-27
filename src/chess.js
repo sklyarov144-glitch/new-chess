@@ -18,7 +18,7 @@ export const aiLevels = {
   novice: { key: 'novice', depth: 1, blunderChance: 0.35 },
   amateur: { key: 'amateur', depth: 2, blunderChance: 0.18 },
   tactician: { key: 'tactician', depth: 3, blunderChance: 0.08 },
-  master: { key: 'master', depth: 4, blunderChance: 0.02 }
+  master: { key: 'master', depth: 4, blunderChance: 0 }
 };
 
 
@@ -398,27 +398,36 @@ export class ChessGame {
   }
 
   bestMove(color = this.turn, level = aiLevels.tactician) {
-    const moves = this.legalMoves(color);
+    const moves = this.orderMoves(this.legalMoves(color), color);
     if (!moves.length) return null;
     if (Math.random() < (level.blunderChance || 0)) {
       return moves[Math.floor(Math.random() * Math.min(3, moves.length))];
     }
+    for (const move of moves) {
+      const clone = this.clone();
+      clone.applyMove(move, 'q', false);
+      const st = clone.status();
+      if (st.over && clone.inCheck(clone.turn)) return move;
+    }
+
     let best = null;
     let bestScore = color === WHITE ? -Infinity : Infinity;
     for (const move of moves) {
       const clone = this.clone();
       clone.applyMove(move, 'q', false);
       const score = clone.minimax((level.depth || 2) - 1, -Infinity, Infinity, clone.turn === WHITE);
-      if (color === WHITE ? score > bestScore : score < bestScore) {
-        bestScore = score;
+      const mateThreatPenalty = this.opponentMateInOnePenalty(clone);
+      const finalScore = color === WHITE ? score - mateThreatPenalty : score + mateThreatPenalty;
+      if (color === WHITE ? finalScore > bestScore : finalScore < bestScore) {
+        bestScore = finalScore;
         best = move;
       }
     }
-    return best || moves[Math.floor(Math.random() * moves.length)];
+    return best || moves[0];
   }
 
   minimax(depth, alpha, beta, maximizingWhite) {
-    const moves = this.legalMoves();
+    const moves = this.orderMoves(this.legalMoves(), this.turn);
     if (depth === 0 || !moves.length) return this.evaluate();
 
     if (maximizingWhite) {
@@ -488,7 +497,9 @@ export class ChessGame {
     }
 
     score += (whiteDevelopment - blackDevelopment) * 15;
-    score -= (whiteHanging - blackHanging) * 0.35;
+    score -= (whiteHanging - blackHanging) * 0.5;
+    score += this.tacticalBonus(WHITE);
+    score -= this.tacticalBonus(BLACK);
 
     if (this.inCheck(BLACK)) score += 35;
     if (this.inCheck(WHITE)) score -= 35;
@@ -516,5 +527,57 @@ export class ChessGame {
       if (this.squareAttacked(r, c, this.opposite(color))) around -= 10;
     }
     return color === WHITE ? around : -around;
+  }
+
+  orderMoves(moves, color = this.turn) {
+    return [...moves].sort((a, b) => this.movePriority(b, color) - this.movePriority(a, color));
+  }
+
+  movePriority(move, color = this.turn) {
+    let priority = 0;
+    const attacker = this.getPiece(move.from.row, move.from.col);
+    const captured = this.getPiece(move.to.row, move.to.col);
+    if (captured) {
+      const capValue = PIECE_VALUES[captured.type] || 0;
+      const atkValue = PIECE_VALUES[attacker?.type] || 1;
+      priority += 5000 + capValue * 10 - atkValue;
+    }
+    const clone = this.clone();
+    clone.applyMove(move, 'q', false);
+    if (clone.inCheck(clone.turn)) priority += 800;
+    return priority;
+  }
+
+  opponentMateInOnePenalty(position) {
+    const replies = position.legalMoves(position.turn);
+    for (const reply of replies) {
+      const next = position.clone();
+      next.applyMove(reply, 'q', false);
+      const st = next.status();
+      if (st.over && next.inCheck(next.turn)) return 200000;
+    }
+    return 0;
+  }
+
+  tacticalBonus(color) {
+    let bonus = 0;
+    const moves = this.legalMoves(color);
+    for (const move of moves) {
+      const captured = this.getPiece(move.to.row, move.to.col);
+      if (captured) bonus += Math.max(0, (PIECE_VALUES[captured.type] || 0) * 0.04);
+      const clone = this.clone();
+      clone.applyMove(move, 'q', false);
+      if (clone.inCheck(clone.turn)) bonus += 6;
+    }
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = this.getPiece(row, col);
+        if (!piece || piece.color !== color || !['q', 'r'].includes(piece.type)) continue;
+        const attackedByEnemy = this.squareAttacked(row, col, this.opposite(color));
+        const defendedByOwn = this.squareAttacked(row, col, color);
+        if (attackedByEnemy && !defendedByOwn) bonus -= piece.type === 'q' ? 90 : 55;
+      }
+    }
+    return bonus;
   }
 }
