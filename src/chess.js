@@ -25,7 +25,12 @@ export const aiLevels = {
 export const boardThemes = {
   royal: { name: 'Royal Gold' },
   neon: { name: 'Neon Cyber' },
-  glass: { name: 'Frozen Glass' }
+  glass: { name: 'Frozen Glass' },
+  emerald: { name: 'Emerald Forest' },
+  lava: { name: 'Lava Arena' },
+  space: { name: 'Space Void' },
+  marble: { name: 'Marble Palace' },
+  sakura: { name: 'Sakura Dream' }
 };
 
 export const pieceSets = {
@@ -43,6 +48,31 @@ export const pieceSets = {
     name: 'Minimal Dots',
     white: { k: '○', q: '◇', r: '□', b: '△', n: '◁', p: '·' },
     black: { k: '●', q: '◆', r: '■', b: '▲', n: '▶', p: '•' }
+  },
+  royalSet: {
+    name: 'Royal Icons',
+    white: { k: '♔', q: '♛', r: '♖', b: '♝', n: '♘', p: '♙' },
+    black: { k: '♚', q: '♕', r: '♜', b: '♗', n: '♞', p: '♟' }
+  },
+  shadowSet: {
+    name: 'Shadow Set',
+    white: { k: '🨀', q: '🨁', r: '🨂', b: '🨃', n: '🨄', p: '◍' },
+    black: { k: '⬢', q: '⬣', r: '◆', b: '◈', n: '✦', p: '•' }
+  },
+  crystalSet: {
+    name: 'Crystal Set',
+    white: { k: '♔', q: '✧', r: '▣', b: '◇', n: '◍', p: '·' },
+    black: { k: '♚', q: '✦', r: '▤', b: '◆', n: '◎', p: '•' }
+  },
+  cyberSet: {
+    name: 'Cyber Set',
+    white: { k: '⟡', q: '⟐', r: '⧈', b: '⬡', n: '⟢', p: '◌' },
+    black: { k: '⟣', q: '⬢', r: '⬣', b: '⬢', n: '⟤', p: '●' }
+  },
+  woodSet: {
+    name: 'Wood Set',
+    white: { k: '♔', q: '♕', r: '♖', b: '♗', n: '♘', p: '♙' },
+    black: { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' }
   }
 };
 
