@@ -1,0 +1,10 @@
+{
+  "name": "royal-chess-quest-yandex-mvp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "HTML5 chess MVP for Yandex Games",
+  "scripts": {
+    "serve": "python3 -m http.server 8080"
+  }
+}

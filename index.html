@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="description" content="Royal Chess Quest — MVP шахматной игры для Яндекс Игр" />
+    <title>Royal Chess Quest</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <!-- Для загрузки архива на сервер Яндекс Игр используйте относительный путь SDK. -->
+    <script src="/sdk.js"></script>
+  </head>
+  <body>
+    <div id="app" class="app-shell">
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand__icon">♛</span>
+          <div>
+            <p class="eyebrow">Yandex Games MVP</p>
+            <h1>Royal Chess Quest</h1>
+          </div>
+        </div>
+        <div class="wallet" aria-label="Игровая валюта">
+          <span>🪙</span>
+          <strong id="coins">0</strong>
+        </div>
+      </header>
+
+      <main class="layout">
+        <section class="board-card">
+          <div class="board-toolbar">
+            <div>
+              <p class="eyebrow" id="modeLabel">Кампания</p>
+              <h2 id="missionTitle">Мат в один ход</h2>
+            </div>
+            <div class="timer-pill"><span>⏱</span><strong id="sessionTimer">00:00</strong></div>
+          </div>
+
+          <div id="board" class="chess-board" aria-label="Шахматная доска"></div>
+
+          <div class="status-panel">
+            <p id="statusText">Выберите фигуру и сделайте ход.</p>
+            <div class="action-row">
+              <button id="hintBtn" class="btn btn-soft">Подсказка</button>
+              <button id="undoBtn" class="btn btn-soft">Отмена хода</button>
+              <button id="rewardBtn" class="btn btn-gold">Удвоить награду</button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="side-panel">
+          <section class="glass-card progress-card">
+            <div class="panel-heading">
+              <p class="eyebrow">Прогресс</p>
+              <h3>Удержание 10+ минут</h3>
+            </div>
+            <div class="progress-track">
+              <div id="retentionProgress" class="progress-fill"></div>
+            </div>
+            <p id="retentionText">Играйте 10 минут, чтобы открыть премиальный сундук.</p>
+          </section>
+
+          <section class="glass-card">
+            <div class="panel-heading">
+              <p class="eyebrow">Режимы</p>
+              <h3>Выберите активность</h3>
+            </div>
+            <div class="mode-grid">
+              <button class="mode-btn active" data-mode="campaign">Кампания</button>
+              <button class="mode-btn" data-mode="puzzle">Задачи</button>
+              <button class="mode-btn" data-mode="ai">Против ИИ</button>
+              <button class="mode-btn" data-mode="daily">Ежедневный вызов</button>
+            </div>
+          </section>
+
+          <section class="glass-card">
+            <div class="panel-heading">
+              <p class="eyebrow">Коллекция</p>
+              <h3>Косметика</h3>
+            </div>
+            <div class="skins" id="skins"></div>
+          </section>
+
+          <section class="glass-card monetization-card">
+            <div class="panel-heading">
+              <p class="eyebrow">Монетизация</p>
+              <h3>Заготовки SDK</h3>
+            </div>
+            <p>Rewarded video: подсказки, отмена хода, удвоение награды. Fullscreen ad: после нескольких уровней.</p>
+            <button id="interstitialBtn" class="btn btn-soft full-width">Тест fullscreen ad</button>
+          </section>
+        </aside>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>
