@@ -3,6 +3,25 @@ const WHITE = 'w';
 const BLACK = 'b';
 const FILES = 'abcdefgh';
 
+const CENTER_SQUARES = new Set(['d4','e4','d5','e5']);
+
+const PST = {
+  p:[ [0,0,0,0,0,0,0,0],[5,10,10,-20,-20,10,10,5],[5,-5,-10,0,0,-10,-5,5],[0,0,0,20,20,0,0,0],[5,5,10,25,25,10,5,5],[10,10,20,30,30,20,10,10],[50,50,50,50,50,50,50,50],[0,0,0,0,0,0,0,0] ],
+  n:[ [-50,-40,-30,-30,-30,-30,-40,-50],[-40,-20,0,5,5,0,-20,-40],[-30,5,10,15,15,10,5,-30],[-30,0,15,20,20,15,0,-30],[-30,5,15,20,20,15,5,-30],[-30,0,10,15,15,10,0,-30],[-40,-20,0,0,0,0,-20,-40],[-50,-40,-30,-30,-30,-30,-40,-50] ],
+  b:[ [-20,-10,-10,-10,-10,-10,-10,-20],[-10,5,0,0,0,0,5,-10],[-10,10,10,10,10,10,10,-10],[-10,0,10,10,10,10,0,-10],[-10,5,5,10,10,5,5,-10],[-10,0,5,10,10,5,0,-10],[-10,0,0,0,0,0,0,-10],[-20,-10,-10,-10,-10,-10,-10,-20] ],
+  r:[ [0,0,5,10,10,5,0,0],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[-5,0,0,0,0,0,0,-5],[5,10,10,10,10,10,10,5],[0,0,0,0,0,0,0,0] ],
+  q:[ [-20,-10,-10,-5,-5,-10,-10,-20],[-10,0,5,0,0,0,0,-10],[-10,5,5,5,5,5,0,-10],[0,0,5,5,5,5,0,-5],[-5,0,5,5,5,5,0,-5],[-10,0,5,5,5,5,0,-10],[-10,0,0,0,0,0,0,-10],[-20,-10,-10,-5,-5,-10,-10,-20] ],
+  k:[ [-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-30,-40,-40,-50,-50,-40,-40,-30],[-20,-30,-30,-40,-40,-30,-30,-20],[-10,-20,-20,-20,-20,-20,-20,-10],[20,20,0,0,0,0,20,20],[20,30,10,0,0,10,30,20] ]
+};
+
+export const aiLevels = {
+  novice: { key: 'novice', depth: 1, blunderChance: 0.35 },
+  amateur: { key: 'amateur', depth: 2, blunderChance: 0.18 },
+  tactician: { key: 'tactician', depth: 3, blunderChance: 0.08 },
+  master: { key: 'master', depth: 4, blunderChance: 0.02 }
+};
+
+
 export const boardThemes = {
   royal: { name: 'Royal Gold' },
   neon: { name: 'Neon Cyber' },
@@ -27,29 +46,6 @@ export const pieceSets = {
   }
 };
 
-export const puzzles = [
-  {
-    title: 'Мат в один ход',
-    fen: '7k/8/6K1/8/8/8/8/R7 w - - 0 1',
-    solution: 'a1a8',
-    reward: 60,
-    hint: 'Ладья может атаковать короля по открытой линии с края доски.'
-  },
-  {
-    title: 'Выиграй ферзя',
-    fen: '4k3/8/8/3q4/8/4N3/8/4K3 w - - 0 1',
-    solution: 'e3d5',
-    reward: 45,
-    hint: 'Конь может забрать самую ценную фигуру.'
-  },
-  {
-    title: 'Спаси короля',
-    fen: '4k3/8/8/8/8/8/5q2/4K2R w - - 0 1',
-    solution: 'e1f2',
-    reward: 40,
-    hint: 'Король должен уйти из-под атаки ферзя.'
-  }
-];
 
 export class ChessGame {
   constructor() {
@@ -371,15 +367,18 @@ export class ChessGame {
     return { over: false, text: this.turn === WHITE ? 'Ход белых.' : 'Ход черных.' };
   }
 
-  bestMove(color = this.turn, depth = 2) {
+  bestMove(color = this.turn, level = aiLevels.tactician) {
     const moves = this.legalMoves(color);
     if (!moves.length) return null;
+    if (Math.random() < (level.blunderChance || 0)) {
+      return moves[Math.floor(Math.random() * Math.min(3, moves.length))];
+    }
     let best = null;
     let bestScore = color === WHITE ? -Infinity : Infinity;
     for (const move of moves) {
       const clone = this.clone();
       clone.applyMove(move, 'q', false);
-      const score = clone.minimax(depth - 1, -Infinity, Infinity, clone.turn === WHITE);
+      const score = clone.minimax((level.depth || 2) - 1, -Infinity, Infinity, clone.turn === WHITE);
       if (color === WHITE ? score > bestScore : score < bestScore) {
         bestScore = score;
         best = move;
@@ -419,13 +418,73 @@ export class ChessGame {
 
   evaluate() {
     let score = 0;
-    for (const row of this.board) {
-      for (const piece of row) {
+    let whiteDevelopment = 0;
+    let blackDevelopment = 0;
+    let whiteHanging = 0;
+    let blackHanging = 0;
+
+    const status = this.status();
+    if (status.over) {
+      if (this.inCheck(this.turn)) return this.turn === WHITE ? -100000 : 100000;
+      const materialLead = this.materialScore();
+      if (materialLead > 200) return -5000;
+      if (materialLead < -200) return 5000;
+    }
+
+    for (let row = 0; row < 8; row++) {
+      for (let col = 0; col < 8; col++) {
+        const piece = this.board[row][col];
         if (!piece) continue;
+        const sign = piece.color === WHITE ? 1 : -1;
         const value = PIECE_VALUES[piece.type] || 0;
-        score += piece.color === WHITE ? value : -value;
+        score += sign * value;
+        const pstRow = piece.color === WHITE ? row : 7 - row;
+        score += sign * (PST[piece.type]?.[pstRow]?.[col] || 0);
+
+        const sq = this.coordsToSquare(row, col);
+        if (CENTER_SQUARES.has(sq)) score += sign * 20;
+        if ((piece.type === 'n' || piece.type === 'b') && piece.moved) {
+          if (piece.color === WHITE) whiteDevelopment += 1;
+          else blackDevelopment += 1;
+        }
+
+        const attackedByEnemy = this.squareAttacked(row, col, this.opposite(piece.color));
+        const defendedByOwn = this.squareAttacked(row, col, piece.color);
+        if (attackedByEnemy && !defendedByOwn && piece.type !== 'k') {
+          if (piece.color === WHITE) whiteHanging += value;
+          else blackHanging += value;
+        }
       }
     }
+
+    score += (whiteDevelopment - blackDevelopment) * 15;
+    score -= (whiteHanging - blackHanging) * 0.35;
+
+    if (this.inCheck(BLACK)) score += 35;
+    if (this.inCheck(WHITE)) score -= 35;
+
+    score += this.kingSafety(WHITE) - this.kingSafety(BLACK);
     return score;
+  }
+
+  materialScore() {
+    let s = 0;
+    for (const row of this.board) for (const piece of row) if (piece) s += piece.color === WHITE ? PIECE_VALUES[piece.type] : -PIECE_VALUES[piece.type];
+    return s;
+  }
+
+  kingSafety(color) {
+    const king = this.findKing(color);
+    if (!king) return 0;
+    let around = 0;
+    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) {
+      if (!dr && !dc) continue;
+      const r = king.row + dr, c = king.col + dc;
+      if (!this.inBounds(r, c)) continue;
+      const p = this.getPiece(r, c);
+      if (p && p.color === color) around += 8;
+      if (this.squareAttacked(r, c, this.opposite(color))) around -= 10;
+    }
+    return color === WHITE ? around : -around;
   }
 }
