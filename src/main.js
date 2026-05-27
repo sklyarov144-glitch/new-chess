@@ -1,6 +1,7 @@
 import { ChessGame, pieceSets, aiLevels } from './chess.js';
 import { puzzles, getPuzzleLabel, getDifficultyLabel } from './puzzles.js';
 import { yandex } from './yandex.js';
+import { validatePuzzlesForDebug } from './validatePuzzles.js';
 
 const LANG_KEY = 'rcq_language';
 const i18n = {
@@ -29,7 +30,7 @@ let state = { ...stateDefaults, language: localStorage.getItem(LANG_KEY) || 'ru'
 let screen='menu', mode='ai', activePuzzle=null, selected=null, legalTargets=[], holdTick=null, rewardMultiplierArmed=false, lastSaveTs=0;
 const app=document.querySelector('#app'); const toastEl=document.querySelector('#toast');
 
-(async()=>{await yandex.init();state={...stateDefaults,...migrateState(await yandex.load(stateDefaults)),language:localStorage.getItem(LANG_KEY)||'ru'};render();app.addEventListener('click',onClick);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveState(true);});window.addEventListener('beforeunload',()=>saveState(true));})();
+(async()=>{await yandex.init();state={...stateDefaults,...migrateState(await yandex.load(stateDefaults)),language:localStorage.getItem(LANG_KEY)||'ru'};validatePuzzlesForDebug(puzzles);render();app.addEventListener('click',onClick);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveState(true);});window.addEventListener('beforeunload',()=>saveState(true));})();
 
 function onClick(e){const a=e.target.closest('[data-action]')?.dataset.action;if(!a)return;
 if(a==='go-menu'){screen='menu';render();}
