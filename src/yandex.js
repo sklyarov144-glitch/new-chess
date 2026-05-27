@@ -1,6 +1,7 @@
 export const yandex = {
   ysdk: null,
   player: null,
+  payments: null,
   ready: false,
 
   async init() {
@@ -102,15 +103,24 @@ export const yandex = {
 
   
 
-  // Заготовка для будущих реальных покупок через Yandex Games SDK.
   async purchaseProduct(productId) {
     try {
-      if (!this.ysdk?.payments) {
-        console.info('[Payments] Local mode stub purchase:', productId);
-        return { ok: false, reason: 'payments-unavailable' };
+      if (!window.YaGames || !this.ysdk?.getPayments) {
+        console.info('[Payments] Local mode mock purchase:', productId);
+        return { ok: true, dev: true, productId };
       }
-      // TODO: подключить вызовы ysdk.payments.getCatalog() + ysdk.payments.purchase().
-      return { ok: false, reason: 'not-implemented' };
+
+      if (!this.payments) {
+        this.payments = await this.ysdk.getPayments();
+      }
+
+      if (!this.payments?.purchase) {
+        console.info('[Payments] Payments API unavailable, mock success:', productId);
+        return { ok: true, dev: true, productId };
+      }
+
+      const purchase = await this.payments.purchase({ id: productId });
+      return { ok: true, productId, purchase };
     } catch (error) {
       console.warn('[Payments] purchase failed:', error);
       return { ok: false, reason: 'error', error };
