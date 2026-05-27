@@ -100,7 +100,34 @@ export const yandex = {
     });
   },
 
-  showInterstitial({ onClose, onError } = {}) {
+  
+
+  // Заготовка для будущих реальных покупок через Yandex Games SDK.
+  async purchaseProduct(productId) {
+    try {
+      if (!this.ysdk?.payments) {
+        console.info('[Payments] Local mode stub purchase:', productId);
+        return { ok: false, reason: 'payments-unavailable' };
+      }
+      // TODO: подключить вызовы ysdk.payments.getCatalog() + ysdk.payments.purchase().
+      return { ok: false, reason: 'not-implemented' };
+    } catch (error) {
+      console.warn('[Payments] purchase failed:', error);
+      return { ok: false, reason: 'error', error };
+    }
+  },
+
+  async consumePurchase(token) {
+    try {
+      if (!this.ysdk?.payments) return { ok: false, reason: 'payments-unavailable' };
+      // TODO: подключить ysdk.payments.consumePurchase(token) когда включим реальные платежи.
+      return { ok: false, reason: 'not-implemented', token };
+    } catch (error) {
+      console.warn('[Payments] consume failed:', error);
+      return { ok: false, reason: 'error', error };
+    }
+  },
+showInterstitial({ onClose, onError } = {}) {
     if (!this.ysdk?.adv?.showFullscreenAdv) {
       onClose?.();
       return;

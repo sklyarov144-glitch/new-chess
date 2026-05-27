@@ -3,21 +3,27 @@ const WHITE = 'w';
 const BLACK = 'b';
 const FILES = 'abcdefgh';
 
-export const themes = {
-  royal: {
-    name: 'Royal Gold',
+export const boardThemes = {
+  royal: { name: 'Royal Gold' },
+  neon: { name: 'Neon Cyber' },
+  glass: { name: 'Frozen Glass' }
+};
+
+export const pieceSets = {
+  classic: {
+    name: 'Classic Unicode',
     white: { k: '♔', q: '♕', r: '♖', b: '♗', n: '♘', p: '♙' },
     black: { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' }
   },
-  neon: {
-    name: 'Neon Cyber',
-    white: { k: '♔', q: '♕', r: '♖', b: '♗', n: '♘', p: '♙' },
-    black: { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' }
+  glyph: {
+    name: 'Runic Glyphs',
+    white: { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' },
+    black: { k: '♔', q: '♕', r: '♖', b: '♗', n: '♘', p: '♙' }
   },
-  glass: {
-    name: 'Frozen Glass',
-    white: { k: '♔', q: '♕', r: '♖', b: '♗', n: '♘', p: '♙' },
-    black: { k: '♚', q: '♛', r: '♜', b: '♝', n: '♞', p: '♟' }
+  minimal: {
+    name: 'Minimal Dots',
+    white: { k: '○', q: '◇', r: '□', b: '△', n: '◁', p: '·' },
+    black: { k: '●', q: '◆', r: '■', b: '▲', n: '▶', p: '•' }
   }
 };
 
