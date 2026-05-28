@@ -34,6 +34,7 @@ const game = new ChessGame();
 let state = { ...stateDefaults, language: localStorage.getItem(LANG_KEY) || 'ru' };
 let screen='menu', mode='ai', activePuzzle=null, selected=null, legalTargets=[], holdTick=null, rewardMultiplierArmed=false, lastSaveTs=0, playerNameSaveTimer=null;
 let aiThinking = false;
+let puzzleSide = null;
 let shopPreview={ type:'board', id:'royal' };
 const PLAYER_AVATARS=['♛','🦁','🐺','🐼','🐉','🦊','👑','⚡','🔥','🌙'];
 const OPPONENTS={novice:{nickname:'KingMango',rating:640,avatar:'🥭',badge:{ru:'Весёлый новичок',en:'Cheerful beginner',tr:'Neşeli acemi'}},amateur:{nickname:'ChessPirozhok',rating:980,avatar:'🥧',badge:{ru:'Любит ловушки',en:'Loves traps',tr:'Tuzakları sever'}},tactician:{nickname:'NeonBishop',rating:1350,avatar:'⚡',badge:{ru:'Тактический охотник',en:'Tactical hunter',tr:'Taktik avcısı'}},master:{nickname:'VelvetKnight',rating:1780,avatar:'🐴',badge:{ru:'Опасный мастер',en:'Dangerous master',tr:'Tehlikeli usta'}}};
@@ -42,13 +43,13 @@ const app=document.querySelector('#app'); const toastEl=document.querySelector('
 (async()=>{await yandex.init();state={...stateDefaults,...migrateState(await yandex.load(stateDefaults)),language:localStorage.getItem(LANG_KEY)||'ru'};shopPreview={ type:'board', id:state.activeBoardTheme };validatePuzzlesForDebug(puzzles);render();app.addEventListener('click',onClick);app.addEventListener('input',onFieldInput);app.addEventListener('change',onFieldInput);app.addEventListener('mouseover',onShopHover);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveState(true);});window.addEventListener('beforeunload',()=>saveState(true));})();
 
 function onClick(e){const a=e.target.closest('[data-action]')?.dataset.action;if(!a)return;
-if(a==='go-menu'){aiThinking=false;screen='menu';render();}
-if(a==='go-game'){screen='difficulty';render();}
+if(a==='go-menu'){aiThinking=false;clearPuzzleState();screen='menu';render();}
+if(a==='go-game'){clearPuzzleState();screen='difficulty';render();}
 if(a==='go-puzzles'){mode='puzzle';screen='game';pickPuzzle(false);render();}
 if(a==='go-shop'){screen='shop';render();}
 if(a==='go-how'){screen='how';render();}
 if(a==='go-settings'){screen='settings';render();}
-if(a==='start-ai'){mode='ai';aiThinking=false;selected=null;legalTargets=[];game.reset('start');screen='game';showToast(t('gameReady'));render();}
+if(a==='start-ai'){clearPuzzleState();mode='ai';aiThinking=false;selected=null;legalTargets=[];game.reset('start');screen='game';showToast(t('gameReady'));render();}
 if(a==='set-ai'){state.aiLevel=e.target.dataset.level;saveState();render();}
 if(a==='hint'){showToast(mode==='puzzle'?(activePuzzle?.hint?.[state.language]||''):t('universalHint'));}
 if(a==='undo'){
@@ -98,11 +99,15 @@ if(aiThinking)return;
 if(game.turn!=='w')return;
 if(piece&&piece.color==='b')return;
 }
+if(mode==='puzzle'){
+if(!puzzleSide||game.turn!==puzzleSide)return;
+if(piece&&piece.color!==puzzleSide)return;
+}
 if(selected){
 const move=game.makeMove(selected,{row,col});
 if(move){selected=null;legalTargets=[];afterMove(move);renderBoard();return;}
 }
-if(piece&&piece.color===game.turn){
+if(piece&&piece.color===game.turn&&(mode!=='puzzle'||piece.color===puzzleSide)){
 selected={row,col};
 legalTargets=game.legalMoves().filter(m=>m.from.row===row&&m.from.col===col).map(m=>m.to);
 }else{selected=null;legalTargets=[];}
@@ -138,7 +143,9 @@ return;
 }
 if(!statusAfterPlayer.over){setTimeout(()=>{const aiMove=game.bestMove('b',aiLevels[state.aiLevel]||aiLevels.amateur);if(aiMove) game.applyMove(aiMove,'q',true);renderBoard();},300);}
 }
-function pickPuzzle(randomAny){const filt=state.puzzleDifficulty==='all'?puzzles:puzzles.filter(p=>p.difficulty===state.puzzleDifficulty);let unresolved=filt.filter(p=>!state.completedPuzzles.includes(p.id));let pool=(randomAny?filt:(unresolved.length?unresolved:filt)).filter(p=>p.id!==state.lastPuzzleId);if(!pool.length) pool=filt;activePuzzle=pool[Math.floor(Math.random()*pool.length)];state.lastPuzzleId=activePuzzle.id;game.reset(activePuzzle.fen);}
+function pickPuzzle(randomAny){const filt=state.puzzleDifficulty==='all'?puzzles:puzzles.filter(p=>p.difficulty===state.puzzleDifficulty);let unresolved=filt.filter(p=>!state.completedPuzzles.includes(p.id));let pool=(randomAny?filt:(unresolved.length?unresolved:filt)).filter(p=>p.id!==state.lastPuzzleId);if(!pool.length) pool=filt;activePuzzle=pool[Math.floor(Math.random()*pool.length)];state.lastPuzzleId=activePuzzle.id;game.reset(activePuzzle.fen);puzzleSide=parsePuzzleSide(activePuzzle.fen);selected=null;legalTargets=[];}
+function parsePuzzleSide(fen){const activeColor=String(fen||'').trim().split(/\s+/)[1];return activeColor==='b'?'b':'w';}
+function clearPuzzleState(){if(mode==='puzzle'){mode='ai';}puzzleSide=null;activePuzzle=null;selected=null;legalTargets=[];}
 function startTimer(){holdTick=setInterval(()=>{state.sessionSeconds+=1;updateHoldUi();checkRetentionReward();saveState();},1000);}
 
 function updateHoldUi(){const elapsed=Math.max(0,Math.floor(state.sessionSeconds));const clamped=Math.min(elapsed,600);const remaining=Math.max(0,600-clamped);const mm=String(Math.floor(clamped/60)).padStart(2,'0');const ss=String(clamped%60).padStart(2,'0');const timerEl=document.querySelector('#hold-timer');if(timerEl)timerEl.textContent=`${mm}:${ss}`;const progressEl=document.querySelector('#hold-progress');if(!progressEl)return;if(state.retentionRewardClaimed){progressEl.textContent=t('holdClaimed');return;}const remainingMinutes=Math.ceil(remaining/60);progressEl.textContent=t('holdProgress',{minutes:remainingMinutes});}
