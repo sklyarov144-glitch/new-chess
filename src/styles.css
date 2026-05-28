@@ -93,3 +93,18 @@ h1,h2,h3,p{margin:0} h1{font-size:clamp(24px,4vw,40px)} h2{font-size:clamp(20px,
 @media (max-width:640px){.app-shell{padding:12px}.topbar{align-items:flex-start;flex-direction:column}.side-panel{grid-template-columns:1fr}.action-row{grid-template-columns:1fr}.menu-card{border-radius:28px;gap:22px}.menu-crown{width:82px;height:82px;font-size:44px}.btn-menu{font-size:21px;min-height:66px;padding:0 18px}.nickname-controls{grid-template-columns:1fr}.preview-body{grid-template-columns:1fr;justify-items:center;text-align:center}}
 
 .player-chip{padding:10px 14px;border:1px solid rgba(255,255,255,.2);border-radius:14px;background:rgba(255,255,255,.06);display:grid;gap:4px}.player-chip small{color:var(--muted)}.player-chip.glow-active{border-color:var(--gold);box-shadow:0 0 14px color-mix(in srgb,var(--gold) 60%, transparent),0 0 32px color-mix(in srgb,var(--accent) 40%, transparent)}.player-name{font-size:16px}.vip-badge{display:inline-block;width:max-content;padding:2px 8px;border-radius:999px;background:linear-gradient(135deg,var(--gold),var(--gold-2));color:#1a2233;font-weight:800;font-size:12px}.in-topbar{margin-left:auto}.glow-block{background:linear-gradient(160deg, rgba(248,201,99,.14), rgba(255,255,255,.03))}.glow-card{border-color:rgba(248,201,99,.45)}.glow-preview{display:grid;place-items:center;background:radial-gradient(circle at 50% 50%, rgba(248,201,99,.95), rgba(245,158,11,.52));color:#1a2233;font-weight:900}.shop-item:hover{transform:translateY(-2px);box-shadow:0 10px 24px rgba(0,0,0,.2)}
+.match-card{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;padding:14px;border:1px solid rgba(255,255,255,.2);border-radius:16px;background:rgba(255,255,255,.06);margin-bottom:12px}
+.player-match{margin-top:12px;margin-bottom:0}
+.opponent-avatar,.player-avatar{width:54px;height:54px;border-radius:14px;display:grid;place-items:center;font-size:30px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.28)}
+.opponent-name{font-size:22px;text-shadow:0 0 16px rgba(248,201,99,.45)}
+.player-match .player-name{font-size:28px}
+.settings-screen{max-width:860px}
+.settings-main{display:grid;gap:18px;text-align:center;padding:34px}
+.settings-main h2{font-size:40px}
+.settings-label{font-size:20px;font-weight:800}
+.settings-lang .btn{min-height:56px;font-size:20px}
+.settings-block{display:grid;gap:10px}
+.avatar-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+.avatar-btn{border:1px solid rgba(255,255,255,.24);background:rgba(255,255,255,.08);color:var(--text);border-radius:14px;padding:12px;font-size:30px;cursor:pointer}
+.active-avatar{border-color:var(--gold);box-shadow:0 0 0 2px rgba(248,201,99,.35)}
+.settings-nickname{margin:0 auto;text-align:left;width:min(560px,100%)}
