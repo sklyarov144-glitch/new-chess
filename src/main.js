@@ -30,6 +30,40 @@ const GLOW_ITEMS = [
   { productId:'vip_glow_week', days:7, yans:150 },
   { productId:'vip_glow_month', days:30, yans:250 }
 ];
+
+const PUZZLE_SOLUTION_RE = /^[a-h][1-8][a-h][1-8]$/;
+
+function getValidPuzzles(){
+  const validator = new ChessGame();
+  const excludedIds = [];
+  const valid = [];
+
+  for (const puzzle of puzzles){
+    let isValid = true;
+    try{
+      validator.reset(puzzle.fen);
+      const solution = String(puzzle.solution || '').trim().toLowerCase();
+      if(!PUZZLE_SOLUTION_RE.test(solution)){
+        isValid = false;
+      }else{
+        const legal = validator.legalMoves().map(m => `${validator.coordsToSquare(m.from.row,m.from.col)}${validator.coordsToSquare(m.to.row,m.to.col)}`.toLowerCase());
+        if(!legal.includes(solution)) isValid = false;
+      }
+    }catch(err){
+      isValid = false;
+    }
+
+    if(isValid) valid.push(puzzle);
+    else excludedIds.push(puzzle.id);
+  }
+
+  console.log(`Valid puzzles: ${valid.length} / ${puzzles.length}`);
+  console.log('Excluded puzzle ids:', excludedIds);
+  return valid;
+}
+
+const validPuzzles = getValidPuzzles();
+
 const game = new ChessGame();
 let state = { ...stateDefaults, language: localStorage.getItem(LANG_KEY) || 'ru' };
 let screen='menu', mode='ai', activePuzzle=null, selected=null, legalTargets=[], holdTick=null, rewardMultiplierArmed=false, lastSaveTs=0, playerNameSaveTimer=null;
@@ -46,7 +80,7 @@ const app=document.querySelector('#app'); const toastEl=document.querySelector('
 function onClick(e){const a=e.target.closest('[data-action]')?.dataset.action;if(!a)return;
 if(a==='go-menu'){aiThinking=false;clearPuzzleState();screen='menu';render();}
 if(a==='go-game'){clearPuzzleState();screen='difficulty';render();}
-if(a==='go-puzzles'){mode='puzzle';screen='game';pickPuzzle(false);render();}
+if(a==='go-puzzles'){mode='puzzle';screen='game';pickPuzzle(false);if(!activePuzzle){showToast('No valid puzzles');screen='menu';mode='ai';render();return;}render();}
 if(a==='go-shop'){screen='shop';render();}
 if(a==='go-how'){screen='how';render();}
 if(a==='go-settings'){screen='settings';render();}
@@ -81,7 +115,7 @@ function getAiStars(level){if(level==='tactician'||level==='master')return 3;ret
 function getPuzzlePraiseKey(stars){if(stars===1)return 'rewardExcellent';if(stars===2)return 'rewardBrilliant';return 'rewardGenius';}
 function openRewardOverlay(payload){rewardOverlay=payload;render();}
 function handleRewardContinue(){if(!rewardOverlay)return;const origin=rewardOverlay.origin;rewardOverlay=null;if(origin==='puzzle'){pickPuzzle(false);render();return;}clearPuzzleState();screen='menu';render();}
-function puzzleHeader(){return `<div class='glass-card puzzle-top'><h3>${t('puzzles')}</h3><p><b>${t('puzzleNo')}:</b> ${activePuzzle.id} · <b>${t('difficulty')}:</b> ${getDifficultyLabel(activePuzzle.difficulty,state.language)}</p><p><b>${t('puzzleGoal')}:</b> ${getPuzzleGoal(activePuzzle)}</p><p><b>${t('hint')}:</b> ${activePuzzle.hint[state.language]}</p></div>`;}
+function puzzleHeader(){if(!activePuzzle)return '';return `<div class='glass-card puzzle-top'><h3>${t('puzzles')}</h3><p><b>${t('puzzleNo')}:</b> ${activePuzzle.id} · <b>${t('difficulty')}:</b> ${getDifficultyLabel(activePuzzle.difficulty,state.language)}</p><p><b>${t('puzzleGoal')}:</b> ${getPuzzleGoal(activePuzzle)}</p><p><b>${t('hint')}:</b> ${activePuzzle.hint[state.language]}</p></div>`;}
 function getPuzzleGoal(puzzle){const cat=String(puzzle?.category||'').toLowerCase();if(cat.includes('mate')||cat.includes('mat'))return t('goalMate1');if(cat.includes('queen')||cat.includes('vezir')||cat.includes('ферз'))return t('goalWinQueen');if(cat.includes('def')||cat.includes('savun')||cat.includes('защит'))return t('goalDefendMate');if(cat.includes('attack')||cat.includes('atak')||cat.includes('атак'))return t('goalDevelopAttack');return t('goalFinishCombination');}
 function renderBoard(){const b=document.querySelector('#board'); if(!b) return; const set=pieceSets[state.activePieceSet]||pieceSets.classic; b.innerHTML='';for(let r=0;r<8;r++)for(let c=0;c<8;c++){const sq=document.createElement('button');sq.className=`square ${(r+c)%2?'dark':'light'}`;const p=game.getPiece(r,c);if(p){sq.textContent=p.color==='w'?set.white[p.type]:set.black[p.type];sq.classList.add('piece');} if(selected&&selected.row===r&&selected.col===c)sq.classList.add('selected'); if(legalTargets.some(t=>t.row===r&&t.col===c))sq.classList.add('legal-target');sq.onclick=()=>onSquare(r,c);b.appendChild(sq);}document.querySelector('#status').textContent=`${t('statusTurn')}: ${game.turn}`;}
 function renderShopSection(type,action,rich=false){return `<div class='shop-block'><h3>${t(type)}</h3><div class='shop-list'>${SHOP_ITEMS[type].map(item=>{const owned=(type==='boards'?state.ownedBoardThemes:state.ownedPieceSets).includes(item.id);const active=type==='boards'?state.activeBoardTheme===item.id:state.activePieceSet===item.id;const badge=active?t('selected'):(owned?t('bought'):`🪙 ${item.price}`);const preview=type==='boards'?`<span class='board-preview theme-${item.id}'></span>`:`<span class='piece-preview'>${renderPiecePreview(item.id)}</span>`;return `<button class='shop-item ${active?'active-shop':''}' data-action='${action}' data-item='${item.id}'>${rich?preview:''}<div><strong>${item.name}</strong><small>${badge}</small></div></button>`;}).join('')}</div></div>`;}
@@ -151,7 +185,7 @@ return;
 }
 if(!statusAfterPlayer.over){setTimeout(()=>{const aiMove=game.bestMove('b',aiLevels[state.aiLevel]||aiLevels.amateur);if(aiMove) game.applyMove(aiMove,'q',true);renderBoard();},300);}
 }
-function pickPuzzle(randomAny){const filt=state.puzzleDifficulty==='all'?puzzles:puzzles.filter(p=>p.difficulty===state.puzzleDifficulty);let unresolved=filt.filter(p=>!state.completedPuzzles.includes(p.id));let pool=(randomAny?filt:(unresolved.length?unresolved:filt)).filter(p=>p.id!==state.lastPuzzleId);if(!pool.length) pool=filt;activePuzzle=pool[Math.floor(Math.random()*pool.length)];state.lastPuzzleId=activePuzzle.id;game.reset(activePuzzle.fen);puzzleSide=parsePuzzleSide(activePuzzle.fen);selected=null;legalTargets=[];}
+function pickPuzzle(randomAny){const source=validPuzzles; if(!source.length){console.error('No valid puzzles available. Puzzle mode is temporarily disabled.');activePuzzle=null;puzzleSide=null;selected=null;legalTargets=[];return;}const filt=state.puzzleDifficulty==='all'?source:source.filter(p=>p.difficulty===state.puzzleDifficulty);const base=filt.length?filt:source;let unresolved=base.filter(p=>!state.completedPuzzles.includes(p.id));let pool=(randomAny?base:(unresolved.length?unresolved:base)).filter(p=>p.id!==state.lastPuzzleId);if(!pool.length) pool=base;activePuzzle=pool[Math.floor(Math.random()*pool.length)];state.lastPuzzleId=activePuzzle.id;game.reset(activePuzzle.fen);puzzleSide=parsePuzzleSide(activePuzzle.fen);selected=null;legalTargets=[];}
 function parsePuzzleSide(fen){const activeColor=String(fen||'').trim().split(/\s+/)[1];return activeColor==='b'?'b':'w';}
 function clearPuzzleState(){if(mode==='puzzle'){mode='ai';}puzzleSide=null;activePuzzle=null;selected=null;legalTargets=[];}
 function startTimer(){holdTick=setInterval(()=>{state.sessionSeconds+=1;updateHoldUi();checkRetentionReward();saveState();},1000);}
