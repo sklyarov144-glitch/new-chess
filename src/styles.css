@@ -114,3 +114,18 @@ h1,h2,h3,p{margin:0} h1{font-size:clamp(24px,4vw,40px)} h2{font-size:clamp(20px,
 
 @keyframes rainbowShift{0%{background-position:0% 50%}100%{background-position:200% 50%}}
 .vip-rainbow-name{background:linear-gradient(90deg,#ff8fb1,#ffd166,#b7ff9f,#8be9ff,#c4a1ff,#ff8fb1);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;animation:rainbowShift 4s linear infinite;text-shadow:none}
+
+.reward-overlay{position:fixed;inset:0;background:rgba(5,10,20,.62);backdrop-filter:blur(6px);display:grid;place-items:center;padding:20px;z-index:30;opacity:0;transform:scale(.97);pointer-events:none;transition:opacity .45s ease,transform .45s ease}
+.reward-overlay.is-visible{opacity:1;transform:scale(1);pointer-events:auto}
+.reward-card{width:min(460px,100%);background:linear-gradient(165deg, rgba(255,255,255,.2), rgba(255,255,255,.06) 52%, rgba(10,19,35,.38));border:1px solid rgba(255,255,255,.3);border-radius:28px;box-shadow:var(--shadow);padding:28px 22px;display:grid;gap:14px;text-align:center;animation:rewardPop .5s ease}
+.reward-subtitle{color:var(--muted);font-size:16px}
+.reward-stars{display:grid;gap:6px;justify-items:center}
+.reward-stars small{color:var(--muted)}
+.reward-stars-row{display:flex;gap:10px}
+.reward-star{font-size:38px;opacity:.25;transform:translateY(8px) scale(.8);color:#ffe08a;filter:drop-shadow(0 0 0 rgba(248,201,99,0));}
+.reward-star.filled{animation:starReveal .5s ease forwards;animation-delay:var(--delay)}
+.reward-coins{font-size:20px}
+.reward-continue{opacity:0;transform:translateY(8px);animation:fadeUp .45s ease .35s forwards}
+@keyframes rewardPop{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+@keyframes starReveal{to{opacity:1;transform:translateY(0) scale(1);filter:drop-shadow(0 0 12px rgba(248,201,99,.55));}}
+@keyframes fadeUp{to{opacity:1;transform:translateY(0)}}
