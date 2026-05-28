@@ -18,7 +18,7 @@ export const aiLevels = {
   novice: { key: 'novice', depth: 1, blunderChance: 0.35 },
   amateur: { key: 'amateur', depth: 2, blunderChance: 0.18 },
   tactician: { key: 'tactician', depth: 3, blunderChance: 0.08 },
-  master: { key: 'master', depth: 4, blunderChance: 0 }
+  master: { key: 'master', depth: 3, blunderChance: 0 }
 };
 
 
