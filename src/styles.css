@@ -52,13 +52,16 @@ h1,h2,h3,p{margin:0} h1{font-size:clamp(24px,4vw,40px)} h2{font-size:clamp(20px,
 .menu-card::before{inset:-12% -10% -20% -10%;background:radial-gradient(circle at 10% 0%, rgba(255,255,255,.2), transparent 42%),radial-gradient(circle at 90% 0%, rgba(56,189,248,.22), transparent 48%);opacity:.75}
 .menu-card::after{inset:1px;border-radius:39px;background:linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.01) 45%, rgba(255,255,255,.03));}
 .menu-hero{display:grid;gap:14px;justify-items:center;text-align:center}
+.menu-avatar-panel{display:grid;gap:10px;justify-items:center;text-align:center;width:min(520px,100%);padding:14px;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.2)}
+.menu-avatar-current{width:84px;height:84px;border-radius:20px;display:grid;place-items:center;font-size:44px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.3);box-shadow:0 10px 24px rgba(2,6,23,.35)}
+.menu-avatar-row{width:100%}
 .menu-crown{width:90px;height:90px;border-radius:28px;display:grid;place-items:center;font-size:50px;background:linear-gradient(145deg,var(--gold),var(--gold-2));color:#1a2233;box-shadow:0 0 0 1px rgba(255,255,255,.42) inset,0 0 34px rgba(248,201,99,.56),0 16px 30px rgba(245,158,11,.38)}
 .subtitle{font-size:19px;color:#f7e5af;letter-spacing:.02em}.hero-copy{color:color-mix(in srgb,var(--muted) 72%, white);margin-top:8px;line-height:1.5;max-width:54ch;text-wrap:balance}
 .menu-actions{display:grid;gap:14px;justify-items:center;width:100%}
 .nickname-panel{display:grid;gap:8px;width:min(520px,100%);text-align:left}
 .nickname-panel label{font-weight:700;color:var(--muted)}
 .nickname-controls{display:grid;grid-template-columns:1fr;gap:10px;align-items:center}
-.nickname-input{width:100%;min-height:56px;padding:14px 18px;border-radius:16px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:var(--text);font-size:clamp(20px,3vw,28px);font-weight:800;letter-spacing:.08em;text-transform:uppercase;text-align:center}
+.nickname-input{width:100%;min-height:56px;padding:14px 18px;border-radius:16px;border:1px solid rgba(255,255,255,.3);background:rgba(255,255,255,.1);color:var(--text);font-size:clamp(20px,3vw,28px);font-weight:700;letter-spacing:.02em;text-align:center;font-family:"Trebuchet MS","Avenir Next",Inter,ui-sans-serif,system-ui,sans-serif}
 .menu-nickname-input{box-shadow:0 0 0 1px rgba(255,255,255,.1) inset,0 12px 30px rgba(2,6,23,.28)}
 .btn-menu{position:relative;font-size:24px;font-weight:800;min-height:74px;background:linear-gradient(145deg, rgba(255,255,255,.2), rgba(255,255,255,.08));border:1px solid rgba(255,255,255,.34);text-align:left;padding:0 24px;border-radius:18px;box-shadow:0 12px 24px rgba(2,6,23,.34),0 0 0 1px rgba(255,255,255,.08) inset,0 0 22px rgba(248,201,99,.16);text-shadow:0 1px 0 rgba(0,0,0,.25)}
 .menu-actions .btn-menu{width:min(520px,100%)}
@@ -78,6 +81,9 @@ h1,h2,h3,p{margin:0} h1{font-size:clamp(24px,4vw,40px)} h2{font-size:clamp(20px,
 .shop-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .shop-columns{display:grid;grid-template-columns:1fr 1fr;gap:16px}
 .shop-block{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:14px}
+.rewarded-block{padding:18px;display:grid;gap:12px}
+.rewarded-title{margin:0 0 2px}
+.rewarded-copy{color:var(--muted);line-height:1.45;margin:0 0 8px}
 .shop-preview{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:12px 14px}
 .preview-body{display:grid;grid-template-columns:80px 1fr;gap:14px;align-items:center;margin-top:8px}
 .preview-body small{color:var(--muted)}
